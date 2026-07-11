@@ -347,8 +347,13 @@ main {
 /* ---------- Hardware cards (always dark modules) ---------- */
 .grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
-  gap: 1.1rem;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 1rem;
+}
+@media (max-width: 620px) {
+  .grid {
+    grid-template-columns: 1fr;
+  }
 }
 .card {
   background: var(--panel);
