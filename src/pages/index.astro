@@ -63,7 +63,7 @@ const cv = {
       name: "Rain to Hi-Hat",
       meta: "INSTRUMENT",
       year: "2025",
-      sketch: "rain",
+      image: "/img/rain-to-hihat.png",
       description:
         "A full-screen pixel-art soundscape — physically-modeled rain, swell, storm and wind — that morphs into a drum kit with a single knob. Every visible pixel event maps to an audible one, in dependency-free vanilla JS on a real-time AudioWorklet.",
       tech: ["Web Audio", "AudioWorklet", "DSP"],
@@ -74,7 +74,7 @@ const cv = {
       name: "Rhythmic Spiral",
       meta: "VISUALIZER",
       year: "2025",
-      sketch: "spiral",
+      image: "/img/rhythmic-spiral.png",
       description:
         "An interactive 3D visualization of one rhythm morphing into another. Beats travel as colored threads along a time-spiral, auto-matched by shortest path, driving live audio synthesis — 6 timbres, 5 scales, 30+ presets.",
       tech: ["Three.js", "JavaScript", "Web Audio"],
@@ -224,7 +224,12 @@ const sections = [
                   <span class="led" />
                   {p.name.replace(/\s+/g, "-").toUpperCase()} · {p.meta} · {p.year}
                 </div>
-                <canvas class="card-screen" data-sketch={p.sketch} aria-hidden="true" />
+                <img
+                  class="card-screen"
+                  src={p.image}
+                  alt={`${p.name} — screenshot`}
+                  loading="lazy"
+                />
                 <h3>{p.name}</h3>
                 <p>{p.description}</p>
                 <ul class="tags">
@@ -461,57 +466,7 @@ const sections = [
     }
   }
 
-  // ---------- project mini-screens ----------
-  const screens = [];
-  document.querySelectorAll(".card-screen").forEach((cnv) => {
-    const ctx = cnv.getContext("2d");
-    screens.push({ cnv, ctx, kind: cnv.dataset.sketch, w: 0, h: 0 });
-  });
-  function sizeScreens() {
-    for (const s of screens) {
-      const r = s.cnv.getBoundingClientRect();
-      s.w = s.cnv.width = Math.floor(r.width * dpr);
-      s.h = s.cnv.height = Math.floor(r.height * dpr);
-    }
-  }
-  function drawScreen(s, t) {
-    const { ctx, w, h } = s;
-    if (!w) return;
-    ctx.clearRect(0, 0, w, h);
-    const u = dpr;
-    if (s.kind === "rain") {
-      for (let i = 0; i < 26; i++) {
-        const col = i % 8;
-        const gx = ((col + 0.5) / 8) * w;
-        const rx = ((i * 97) % 100) / 100;
-        const x = rx * w * (1 - morph) + gx * morph;
-        const y = ((t * (0.05 + i * 0.004) + i * 0.13) % 1) * h;
-        const beat = morph > 0.5 && col === step % 8;
-        ctx.globalAlpha = beat ? 0.9 : 0.5;
-        ctx.fillStyle = beat ? COL.red : COL.cobalt;
-        ctx.fillRect(x, y, 1.5 * u, 3 * u);
-      }
-    } else if (s.kind === "spiral") {
-      const cx = w / 2,
-        cy = h / 2;
-      const turns = 3.2;
-      const beads = 40;
-      for (let i = 0; i < beads; i++) {
-        const f = i / beads;
-        const a = f * turns * Math.PI * 2 + t * (0.4 + morph * 0.8);
-        const rad = f * Math.min(w, h) * 0.44;
-        const x = cx + Math.cos(a) * rad;
-        const y = cy + Math.sin(a) * rad * 0.6;
-        const beat = morph > 0.5 && i % 8 === step % 8;
-        ctx.globalAlpha = beat ? 0.95 : 0.55;
-        ctx.fillStyle = beat ? COL.red : i % 5 === 0 ? COL.cobalt : "#e8e9ea";
-        ctx.fillRect(x, y, 2 * u, 2 * u);
-      }
-    }
-    ctx.globalAlpha = 1;
-  }
-
-  // ---------- unified loop ----------
+  // ---------- background loop ----------
   function frame(now) {
     const dt = Math.min(0.05, (now - last) / 1000);
     last = now;
@@ -523,25 +478,17 @@ const sections = [
       }
       stepField(dt);
       drawField();
-      const t = now / 1000;
-      for (const s of screens) drawScreen(s, t);
     }
     requestAnimationFrame(frame);
   }
 
-  function sizeAll() {
-    sizeField();
-    sizeScreens();
-  }
   seedField();
-  sizeAll();
+  sizeField();
   // always paint one static frame (covers reduced-motion + hidden-tab first paint)
   drawField();
-  for (const s of screens) drawScreen(s, 0);
   addEventListener("resize", () => {
-    sizeAll();
+    sizeField();
     drawField();
-    for (const s of screens) drawScreen(s, performance.now() / 1000);
   });
   if (!reduce) requestAnimationFrame(frame);
 

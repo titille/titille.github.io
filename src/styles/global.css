@@ -394,7 +394,9 @@ main {
 }
 .card-screen {
   width: 100%;
-  aspect-ratio: 16 / 7;
+  aspect-ratio: 16 / 9;
+  object-fit: cover;
+  object-position: center;
   background: #0c0d0f;
   border: 1px solid var(--panel-border);
   border-radius: 3px;
