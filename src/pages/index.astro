@@ -1,0 +1,250 @@
+---
+import BaseLayout from "../layouts/BaseLayout.astro";
+
+// ─────────────────────────────────────────────────────────────
+//  EDIT YOUR CV CONTENT HERE
+//  Everything below is placeholder text — replace it with yours.
+// ─────────────────────────────────────────────────────────────
+const cv = {
+  name: "Tristan Weber",
+  role: "Software Developer",
+  tagline:
+    "I build fast, accessible web applications and enjoy turning ideas into polished products.",
+  location: "France",
+  email: "webertristan2000@gmail.com",
+  links: {
+    github: "https://github.com/titille",
+    linkedin: "https://www.linkedin.com/in/your-handle",
+  },
+
+  about:
+    "Short introduction about yourself. Talk about what you do, what you're passionate about, and what kind of role or projects you're looking for. Two or three sentences is plenty.",
+
+  experience: [
+    {
+      title: "Job Title",
+      company: "Company Name",
+      period: "2023 — Present",
+      description:
+        "Describe your responsibilities and biggest achievements. Use numbers when you can (e.g. improved load time by 40%).",
+    },
+    {
+      title: "Previous Job Title",
+      company: "Previous Company",
+      period: "2021 — 2023",
+      description:
+        "Another role. Keep each entry concise and focused on impact rather than a list of tasks.",
+    },
+  ],
+
+  projects: [
+    {
+      name: "Rain to Hihat",
+      description:
+        "A short description of the project and the tech behind it.",
+      link: "https://github.com/titille",
+    },
+    {
+      name: "Project Two",
+      description: "Another project you're proud of. Add a link to a demo or repo.",
+      link: "#",
+    },
+    {
+      name: "Project Three",
+      description: "Keep descriptions short — one line about what it does.",
+      link: "#",
+    },
+  ],
+
+  skills: [
+    "JavaScript",
+    "TypeScript",
+    "React",
+    "Astro",
+    "Node.js",
+    "HTML & CSS",
+    "Git",
+    "Figma",
+  ],
+
+  education: [
+    {
+      title: "Your Degree",
+      school: "University / School Name",
+      period: "2018 — 2021",
+    },
+  ],
+};
+---
+
+<BaseLayout
+  title={`${cv.name} — ${cv.role}`}
+  description={cv.tagline}
+>
+  <!-- Hero -->
+  <header class="hero">
+    <div class="container">
+      <p class="eyebrow">{cv.location} · Available for work</p>
+      <h1>{cv.name}</h1>
+      <p class="role">{cv.role}</p>
+      <p class="tagline">{cv.tagline}</p>
+      <div class="hero-links">
+        <a class="btn btn-primary" href={`mailto:${cv.email}`}>Get in touch</a>
+        <a class="btn" href={cv.links.github} target="_blank" rel="noopener">GitHub</a>
+        <a class="btn" href={cv.links.linkedin} target="_blank" rel="noopener">LinkedIn</a>
+      </div>
+    </div>
+  </header>
+
+  <main class="container">
+    <!-- About -->
+    <section id="about">
+      <p class="section-title">About</p>
+      <p>{cv.about}</p>
+    </section>
+
+    <!-- Experience -->
+    <section id="experience">
+      <p class="section-title">Experience</p>
+      {
+        cv.experience.map((job) => (
+          <div class="item">
+            <div class="item-head">
+              <h3 class="item-title">{job.title}</h3>
+              <span class="item-meta">{job.period}</span>
+            </div>
+            <p class="item-sub">{job.company}</p>
+            <p class="item-desc">{job.description}</p>
+          </div>
+        ))
+      }
+    </section>
+
+    <!-- Projects -->
+    <section id="projects">
+      <p class="section-title">Projects</p>
+      <div class="grid">
+        {
+          cv.projects.map((project) => (
+            <a class="card" href={project.link} target="_blank" rel="noopener">
+              <h3>{project.name}</h3>
+              <p>{project.description}</p>
+              <span class="tag">View →</span>
+            </a>
+          ))
+        }
+      </div>
+    </section>
+
+    <!-- Skills -->
+    <section id="skills">
+      <p class="section-title">Skills</p>
+      <ul class="tags">
+        {cv.skills.map((skill) => <li class="tag">{skill}</li>)}
+      </ul>
+    </section>
+
+    <!-- Education -->
+    <section id="education">
+      <p class="section-title">Education</p>
+      {
+        cv.education.map((ed) => (
+          <div class="item">
+            <div class="item-head">
+              <h3 class="item-title">{ed.title}</h3>
+              <span class="item-meta">{ed.period}</span>
+            </div>
+            <p class="item-sub">{ed.school}</p>
+          </div>
+        ))
+      }
+    </section>
+
+    <!-- Contact -->
+    <section id="contact">
+      <p class="section-title">Contact</p>
+      <p>
+        Feel free to reach out at
+        <a href={`mailto:${cv.email}`}>{cv.email}</a>.
+      </p>
+    </section>
+  </main>
+
+  <footer class="container">
+    <p>© {new Date().getFullYear()} {cv.name}. Built with Astro.</p>
+  </footer>
+</BaseLayout>
+
+<style>
+  .hero {
+    padding: 4.5rem 0 3rem;
+    background:
+      radial-gradient(
+        60% 120% at 50% -10%,
+        var(--accent-soft),
+        transparent 70%
+      );
+  }
+
+  .eyebrow {
+    color: var(--text-muted);
+    font-size: 0.9rem;
+    margin: 0 0 0.75rem;
+  }
+
+  .hero h1 {
+    font-size: clamp(2.4rem, 6vw, 3.4rem);
+    margin: 0;
+  }
+
+  .role {
+    font-size: 1.3rem;
+    color: var(--accent);
+    font-weight: 600;
+    margin: 0.25rem 0 0.75rem;
+  }
+
+  .tagline {
+    font-size: 1.1rem;
+    color: var(--text-muted);
+    max-width: 34rem;
+    margin: 0 0 1.75rem;
+  }
+
+  .hero-links {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.75rem;
+  }
+
+  .btn {
+    display: inline-block;
+    padding: 0.6rem 1.15rem;
+    border-radius: 10px;
+    border: 1px solid var(--border);
+    background: var(--surface);
+    color: var(--text);
+    font-weight: 500;
+    font-size: 0.95rem;
+    transition: border-color 0.15s ease, transform 0.15s ease;
+  }
+
+  .btn:hover {
+    text-decoration: none;
+    border-color: var(--accent);
+    transform: translateY(-2px);
+  }
+
+  .btn-primary {
+    background: var(--accent);
+    color: #fff;
+    border-color: var(--accent);
+  }
+
+  footer {
+    padding: 2rem 1.25rem 3rem;
+    color: var(--text-muted);
+    font-size: 0.88rem;
+    text-align: center;
+  }
+</style>
