@@ -1,16 +1,14 @@
 ---
 import BaseLayout from "../layouts/BaseLayout.astro";
-import PixelFlame from "../components/PixelFlame.astro";
 
 // ─────────────────────────────────────────────────────────────
 //  EDIT YOUR CV CONTENT HERE
-//  Everything below is placeholder text — replace it with yours.
 // ─────────────────────────────────────────────────────────────
 const cv = {
   name: "Tristan Weber",
-  role: "Software Developer",
+  role: "Creative Technologist · Developer",
   tagline:
-    "I build fast, accessible web applications and interactive audio-visual toys — turning ideas into polished, playable products.",
+    "I shape noise into rhythm — generative, interactive audio-visual instruments that morph one thing into another.",
   location: "France",
   email: "webertristan2000@gmail.com",
   links: {
@@ -41,17 +39,22 @@ const cv = {
   projects: [
     {
       name: "Rain to Hi-Hat",
+      meta: "INSTRUMENT",
+      year: "2025",
+      sketch: "rain",
       description:
-        "A full-screen pixel-art soundscape — physically-modeled rain, swell, storm and wind — that morphs into a drum kit (hi-hat, kick, crash, riser) with a single knob. Every visible pixel event maps to an audible one, all in dependency-free vanilla JS on a real-time AudioWorklet.",
-      tech: ["Web Audio", "AudioWorklet", "Pixel art"],
+        "A full-screen pixel-art soundscape — physically-modeled rain, swell, storm and wind — that morphs into a drum kit with a single knob. Every visible pixel event maps to an audible one, in dependency-free vanilla JS on a real-time AudioWorklet.",
+      tech: ["Web Audio", "AudioWorklet", "DSP"],
       demo: "/demos/rain-to-hihat/",
-      // Source repo is private, so no public code link.
       link: null,
     },
     {
       name: "Rhythmic Spiral",
+      meta: "VISUALIZER",
+      year: "2025",
+      sketch: "spiral",
       description:
-        "An interactive 3D visualization of one rhythm morphing into another. Beats travel as colored threads along a time-spiral, are auto-matched by shortest path, and drive live audio synthesis — 6 timbres, 5 scales, and 30+ presets.",
+        "An interactive 3D visualization of one rhythm morphing into another. Beats travel as colored threads along a time-spiral, auto-matched by shortest path, driving live audio synthesis — 6 timbres, 5 scales, 30+ presets.",
       tech: ["Three.js", "JavaScript", "Web Audio"],
       demo: "/demos/rhythmic-spiral/",
       link: "https://github.com/titille/rhythmic-spiral",
@@ -61,12 +64,13 @@ const cv = {
   skills: [
     "JavaScript",
     "TypeScript",
-    "React",
+    "Web Audio / DSP",
+    "Canvas / WebGL",
+    "Three.js",
     "Astro",
     "Node.js",
-    "HTML & CSS",
+    "Python",
     "Git",
-    "Figma",
   ],
 
   education: [
@@ -77,252 +81,454 @@ const cv = {
     },
   ],
 };
+
+const sections = [
+  { id: "work", label: "Work" },
+  { id: "about", label: "About" },
+  { id: "experience", label: "Exp" },
+  { id: "skills", label: "Skills" },
+  { id: "education", label: "Edu" },
+  { id: "contact", label: "Contact" },
+];
 ---
 
 <BaseLayout title={`${cv.name} — ${cv.role}`} description={cv.tagline}>
-  <!-- Nav -->
-  <nav class="nav">
-    <div class="nav-inner">
-      <a class="nav-brand" href="#top">
-        <PixelFlame size="1.15em" />
-        {cv.name}
-      </a>
-      <div class="nav-links">
-        <a href="#about">About</a>
-        <a href="#projects">Projects</a>
-        <a href="#contact">Contact</a>
-        <a href={cv.links.github} target="_blank" rel="noopener">GitHub</a>
-      </div>
-    </div>
+  <canvas id="field" aria-hidden="true"></canvas>
+
+  <!-- Sequencer nav -->
+  <nav class="seq" aria-label="Section navigation">
+    {
+      sections.map((s) => (
+        <button data-seq={s.id} aria-label={s.label}>
+          <span class="seq-label">{s.label}</span>
+        </button>
+      ))
+    }
   </nav>
 
-  <!-- Hero -->
-  <header class="hero" id="top">
-    <div class="container">
-      <PixelFlame size="68px" class="hero-flame" />
-      <p class="eyebrow">{cv.location} · Available for work</p>
-      <h1 class="hero-name">{cv.name}</h1>
-      <p class="role">{cv.role}</p>
-      <p class="tagline">{cv.tagline}</p>
-      <div class="hero-links">
-        <a class="btn btn-primary" href={`mailto:${cv.email}`}>Get in touch</a>
-        <a class="btn" href={cv.links.github} target="_blank" rel="noopener">GitHub</a>
-        <a class="btn" href={cv.links.linkedin} target="_blank" rel="noopener">LinkedIn</a>
-      </div>
-    </div>
-    <div class="flame-strip" role="presentation"></div>
-  </header>
+  <div class="wrap">
+    <!-- Instrument bar -->
+    <header class="bar">
+      <div class="bar-inner">
+        <a class="brand" href="#top">
+          <svg class="brand-mark" width="16" height="20" viewBox="0 0 8 10" aria-hidden="true">
+            <rect x="0" y="0" width="2" height="2" fill="currentColor"></rect>
+            <rect x="3" y="0" width="2" height="2" fill="currentColor"></rect>
+            <rect x="6" y="0" width="2" height="2" fill="currentColor"></rect>
+            <rect x="0" y="4" width="2" height="2" fill="currentColor"></rect>
+            <rect x="6" y="4" width="2" height="2" fill="currentColor"></rect>
+            <rect x="0" y="8" width="2" height="2" fill="currentColor"></rect>
+            <rect x="3" y="8" width="2" height="2" fill="currentColor"></rect>
+            <rect x="6" y="8" width="2" height="2" fill="currentColor"></rect>
+          </svg>
+          {cv.name}
+        </a>
 
-  <main class="container">
-    <!-- About -->
-    <section id="about">
-      <p class="section-title">About</p>
-      <p class="lead">{cv.about}</p>
-    </section>
-
-    <!-- Experience -->
-    <section id="experience">
-      <p class="section-title">Experience</p>
-      {
-        cv.experience.map((job) => (
-          <div class="item">
-            <div class="item-head">
-              <h3 class="item-title">{job.title}</h3>
-              <span class="item-meta">{job.period}</span>
-            </div>
-            <p class="item-sub">{job.company}</p>
-            <p class="item-desc">{job.description}</p>
+        <div class="bar-right">
+          <div class="morph" title="Turn: rain ⇄ signal">
+            <span class="morph-pole left on" id="poleL"><b>Pluie</b></span>
+            <svg
+              class="knob"
+              id="knob"
+              viewBox="0 0 44 44"
+              role="slider"
+              tabindex="0"
+              aria-label="Morph the page from rain to signal"
+              aria-valuemin="0"
+              aria-valuemax="100"
+              aria-valuenow="35"
+            >
+              <circle class="dial" cx="22" cy="22" r="17"></circle>
+              <line class="tick" x1="22" y1="2.5" x2="22" y2="5.5"></line>
+              <line class="tick" x1="7.2" y1="14" x2="9.8" y2="15.5"></line>
+              <line class="tick" x1="36.8" y1="14" x2="34.2" y2="15.5"></line>
+              <g id="knobInd"><line class="ind" x1="22" y1="22" x2="22" y2="9"></line></g>
+            </svg>
+            <span class="morph-pole right" id="poleR"><b>Signal</b></span>
           </div>
-        ))
-      }
+
+          <div class="bar-links">
+            <a href="#work">Work</a>
+            <a href="#contact">Contact</a>
+            <a href={cv.links.github} target="_blank" rel="noopener">GitHub</a>
+          </div>
+
+          <button class="fader" id="themeToggle" aria-label="Toggle theme" title="Toggle light / dark">
+            <span class="fader-thumb"></span>
+          </button>
+        </div>
+      </div>
+    </header>
+
+    <!-- Hero -->
+    <section class="hero" id="top">
+      <div class="container">
+        <p class="eyebrow"><span class="led"></span>{cv.location} · Available for work</p>
+        <h1 class="hero-name">{cv.name}</h1>
+        <p class="hero-role">{cv.role}</p>
+        <p class="hero-tag">{cv.tagline}</p>
+        <div class="btns">
+          <a class="btn btn-primary" href={`mailto:${cv.email}`}>Get in touch</a>
+          <a class="btn" href={cv.links.github} target="_blank" rel="noopener">GitHub</a>
+          <a class="btn" href={cv.links.linkedin} target="_blank" rel="noopener">LinkedIn</a>
+        </div>
+        <p class="hint">↗ turn the knob — the rain becomes a groove</p>
+      </div>
     </section>
 
-    <!-- Projects -->
-    <section id="projects">
-      <p class="section-title">Projects</p>
-      <div class="grid">
+    <main class="container">
+      <!-- Work -->
+      <section class="section" id="work" data-seq-target="work">
+        <p class="sec-title">
+          <span class="sec-no">01</span><span class="dash">—</span>Selected Work
+        </p>
+        <div class="grid">
+          {
+            cv.projects.map((p) => (
+              <article class="card">
+                <div class="card-strip">
+                  <span class="led" />
+                  {p.name.replace(/\s+/g, "-").toUpperCase()} · {p.meta} · {p.year}
+                </div>
+                <canvas class="card-screen" data-sketch={p.sketch} aria-hidden="true" />
+                <h3>{p.name}</h3>
+                <p>{p.description}</p>
+                <ul class="tags">
+                  {p.tech.map((t) => (
+                    <li class="tag">{t}</li>
+                  ))}
+                </ul>
+                <div class="card-foot">
+                  {p.demo && (
+                    <a class="card-cta" href={p.demo} target="_blank" rel="noopener">
+                      ▶ Live demo
+                    </a>
+                  )}
+                  {p.link ? (
+                    <a class="card-cta muted" href={p.link} target="_blank" rel="noopener">
+                      Code →
+                    </a>
+                  ) : (
+                    <span class="card-cta muted">Code private</span>
+                  )}
+                </div>
+              </article>
+            ))
+          }
+        </div>
+      </section>
+
+      <!-- About -->
+      <section class="section" id="about" data-seq-target="about">
+        <p class="sec-title"><span class="sec-no">02</span><span class="dash">—</span>About</p>
+        <p class="lead">{cv.about}</p>
+      </section>
+
+      <!-- Experience -->
+      <section class="section" id="experience" data-seq-target="experience">
+        <p class="sec-title"><span class="sec-no">03</span><span class="dash">—</span>Experience</p>
         {
-          cv.projects.map((project) => (
-            <div class="card">
-              <h3>{project.name}</h3>
-              <p>{project.description}</p>
-              <ul class="tags card-tags">
-                {project.tech.map((t) => (
-                  <li class="tag">{t}</li>
-                ))}
-              </ul>
-              <div class="card-actions">
-                {project.demo && (
-                  <a class="card-cta" href={project.demo} target="_blank" rel="noopener">
-                    ▶ Live demo
-                  </a>
-                )}
-                {project.link ? (
-                  <a
-                    class="card-cta card-cta-muted"
-                    href={project.link}
-                    target="_blank"
-                    rel="noopener"
-                  >
-                    Code →
-                  </a>
-                ) : (
-                  <span class="card-cta card-cta-muted">🔒 Code private</span>
-                )}
+          cv.experience.map((job) => (
+            <div class="item">
+              <div class="item-head">
+                <h3 class="item-title">{job.title}</h3>
+                <span class="item-meta">{job.period}</span>
               </div>
+              <p class="item-sub">{job.company}</p>
+              <p class="item-desc">{job.description}</p>
             </div>
           ))
         }
-      </div>
-    </section>
+      </section>
 
-    <!-- Skills -->
-    <section id="skills">
-      <p class="section-title">Skills</p>
-      <ul class="tags">
-        {cv.skills.map((skill) => <li class="tag">{skill}</li>)}
-      </ul>
-    </section>
+      <!-- Skills -->
+      <section class="section" id="skills" data-seq-target="skills">
+        <p class="sec-title"><span class="sec-no">04</span><span class="dash">—</span>Skills</p>
+        <ul class="tags">
+          {cv.skills.map((s) => <li class="tag">{s}</li>)}
+        </ul>
+      </section>
 
-    <!-- Education -->
-    <section id="education">
-      <p class="section-title">Education</p>
-      {
-        cv.education.map((ed) => (
-          <div class="item">
-            <div class="item-head">
-              <h3 class="item-title">{ed.title}</h3>
-              <span class="item-meta">{ed.period}</span>
+      <!-- Education -->
+      <section class="section" id="education" data-seq-target="education">
+        <p class="sec-title"><span class="sec-no">05</span><span class="dash">—</span>Education</p>
+        {
+          cv.education.map((ed) => (
+            <div class="item">
+              <div class="item-head">
+                <h3 class="item-title">{ed.title}</h3>
+                <span class="item-meta">{ed.period}</span>
+              </div>
+              <p class="item-sub">{ed.school}</p>
             </div>
-            <p class="item-sub">{ed.school}</p>
-          </div>
-        ))
-      }
-    </section>
+          ))
+        }
+      </section>
 
-    <!-- Contact -->
-    <section id="contact">
-      <p class="section-title">Contact</p>
-      <p class="lead">
-        Feel free to reach out at <a href={`mailto:${cv.email}`}>{cv.email}</a>.
-      </p>
-    </section>
-  </main>
+      <!-- Contact -->
+      <section class="section" id="contact" data-seq-target="contact">
+        <p class="sec-title"><span class="sec-no">06</span><span class="dash">—</span>Contact</p>
+        <p class="lead">
+          Reach out at <a href={`mailto:${cv.email}`}>{cv.email}</a> — or find me on
+          <a href={cv.links.github} target="_blank" rel="noopener">GitHub</a>.
+        </p>
+      </section>
+    </main>
 
-  <footer class="site-footer">
-    <div class="container footer-inner">
-      <span><PixelFlame size="1.1em" /> {cv.name}</span>
-      <span class="footer-meta">© {new Date().getFullYear()} · Built with Astro + pixels</span>
-    </div>
-  </footer>
+    <footer class="foot">
+      <div class="container foot-inner">
+        <span>{cv.name} — Bruit / Signal</span>
+        <span>© {new Date().getFullYear()} · built as an instrument</span>
+      </div>
+    </footer>
+  </div>
 </BaseLayout>
 
-<style>
-  .hero {
-    padding: 3.5rem 0 0;
-    position: relative;
-    background:
-      radial-gradient(
-        55% 90% at 12% -10%,
-        color-mix(in srgb, var(--flame-3) 22%, transparent),
-        transparent 70%
-      );
+<script>
+  const root = document.documentElement;
+  const reduce = matchMedia("(prefers-reduced-motion: reduce)").matches;
+
+  // ---------- colours (refreshed on theme change) ----------
+  let COL = { ink: "#16181a", red: "#d40000", cobalt: "#0044bb", muted: "#6b7076" };
+  function refreshColours() {
+    const cs = getComputedStyle(root);
+    COL = {
+      ink: cs.getPropertyValue("--ink").trim() || COL.ink,
+      red: cs.getPropertyValue("--red").trim() || COL.red,
+      cobalt: cs.getPropertyValue("--cobalt").trim() || COL.cobalt,
+      muted: cs.getPropertyValue("--muted").trim() || COL.muted,
+    };
+  }
+  refreshColours();
+
+  // ---------- morph state ----------
+  let morph = 0.35;
+  const knob = document.getElementById("knob");
+  const knobInd = document.getElementById("knobInd");
+  const poleL = document.getElementById("poleL");
+  const poleR = document.getElementById("poleR");
+
+  function applyMorph(v) {
+    morph = Math.max(0, Math.min(1, v));
+    root.style.setProperty("--morph", morph.toFixed(3));
+    root.style.setProperty("--wght", String(Math.round(320 + morph * 430)));
+    root.style.setProperty(
+      "--ease",
+      morph > 0.45 ? `steps(${Math.round(4 + morph * 9)}, end)` : "cubic-bezier(0.2,0.7,0.3,1)"
+    );
+    if (knobInd) knobInd.setAttribute("transform", `rotate(${-135 + morph * 270} 22 22)`);
+    if (knob) knob.setAttribute("aria-valuenow", String(Math.round(morph * 100)));
+    poleL && poleL.classList.toggle("on", morph < 0.5);
+    poleR && poleR.classList.toggle("on", morph >= 0.5);
+  }
+  applyMorph(morph);
+
+  // knob interactions
+  if (knob) {
+    let dragging = false;
+    knob.addEventListener("pointerdown", (e) => {
+      dragging = true;
+      knob.setPointerCapture(e.pointerId);
+    });
+    knob.addEventListener("pointermove", (e) => {
+      if (!dragging) return;
+      applyMorph(morph - e.movementY * 0.006 + e.movementX * 0.003);
+    });
+    knob.addEventListener("pointerup", () => (dragging = false));
+    knob.addEventListener(
+      "wheel",
+      (e) => {
+        e.preventDefault();
+        applyMorph(morph - e.deltaY * 0.0012);
+      },
+      { passive: false }
+    );
+    knob.addEventListener("keydown", (e) => {
+      const k = e.key;
+      if (k === "ArrowUp" || k === "ArrowRight") applyMorph(morph + 0.05);
+      else if (k === "ArrowDown" || k === "ArrowLeft") applyMorph(morph - 0.05);
+      else if (k === "Home") applyMorph(0);
+      else if (k === "End") applyMorph(1);
+      else return;
+      e.preventDefault();
+    });
   }
 
-  .hero-flame {
-    filter: drop-shadow(3px 3px 0 rgba(0, 0, 0, 0.12));
-    margin-bottom: 1rem;
+  // ---------- theme toggle ----------
+  const toggle = document.getElementById("themeToggle");
+  toggle &&
+    toggle.addEventListener("click", () => {
+      const next = root.dataset.theme === "dark" ? "light" : "dark";
+      root.dataset.theme = next;
+      try {
+        localStorage.setItem("theme", next);
+      } catch (e) {}
+      refreshColours();
+    });
+
+  // ---------- the clock (92 BPM, 16th notes) ----------
+  const BPM = 92;
+  const STEP = 60 / BPM / 4;
+  let step = 0,
+    acc = 0,
+    last = performance.now();
+
+  // ---------- background rain / signal field ----------
+  const field = document.getElementById("field");
+  const fctx = field.getContext("2d");
+  let W = 0,
+    H = 0,
+    dpr = 1;
+  const drops = [];
+  function seedField() {
+    drops.length = 0;
+    const n = Math.min(120, Math.floor(innerWidth / 12));
+    for (let i = 0; i < n; i++) {
+      drops.push({
+        col: i % 16,
+        rx: Math.random(),
+        y: Math.random(),
+        vy: 0.06 + Math.random() * 0.12,
+      });
+    }
+  }
+  function sizeField() {
+    dpr = Math.min(2, devicePixelRatio || 1);
+    W = field.width = Math.floor(innerWidth * dpr);
+    H = field.height = Math.floor(innerHeight * dpr);
+    field.style.width = innerWidth + "px";
+    field.style.height = innerHeight + "px";
+  }
+  function drawField() {
+    fctx.clearRect(0, 0, W, H);
+    const m = morph;
+    const dot = 2 * dpr;
+    for (const d of drops) {
+      const gridX = ((d.col + 0.5) / 16) * W;
+      const x = (d.rx * W) * (1 - m) + gridX * m;
+      const y = d.y * H;
+      const onBeat = m > 0.5 && d.col === step;
+      fctx.globalAlpha = onBeat ? 0.6 : 0.14 + m * 0.08;
+      fctx.fillStyle = onBeat ? COL.red : COL.ink;
+      fctx.fillRect(x - dot / 2, y - dot / 2, dot, dot * (1 + m));
+    }
+    fctx.globalAlpha = 1;
+  }
+  function stepField(dt) {
+    for (const d of drops) {
+      d.y += d.vy * dt * (0.6 + morph * 0.9);
+      if (d.y > 1) {
+        d.y -= 1;
+        d.rx = Math.random();
+      }
+    }
   }
 
-  .eyebrow {
-    font-family: var(--font-mono);
-    text-transform: uppercase;
-    letter-spacing: 0.08em;
-    color: var(--muted);
-    font-size: 0.82rem;
-    margin: 0 0 0.6rem;
+  // ---------- project mini-screens ----------
+  const screens = [];
+  document.querySelectorAll(".card-screen").forEach((cnv) => {
+    const ctx = cnv.getContext("2d");
+    screens.push({ cnv, ctx, kind: cnv.dataset.sketch, w: 0, h: 0 });
+  });
+  function sizeScreens() {
+    for (const s of screens) {
+      const r = s.cnv.getBoundingClientRect();
+      s.w = s.cnv.width = Math.floor(r.width * dpr);
+      s.h = s.cnv.height = Math.floor(r.height * dpr);
+    }
+  }
+  function drawScreen(s, t) {
+    const { ctx, w, h } = s;
+    if (!w) return;
+    ctx.clearRect(0, 0, w, h);
+    const u = dpr;
+    if (s.kind === "rain") {
+      for (let i = 0; i < 26; i++) {
+        const col = i % 8;
+        const gx = ((col + 0.5) / 8) * w;
+        const rx = ((i * 97) % 100) / 100;
+        const x = rx * w * (1 - morph) + gx * morph;
+        const y = ((t * (0.05 + i * 0.004) + i * 0.13) % 1) * h;
+        const beat = morph > 0.5 && col === step % 8;
+        ctx.globalAlpha = beat ? 0.9 : 0.5;
+        ctx.fillStyle = beat ? COL.red : COL.cobalt;
+        ctx.fillRect(x, y, 1.5 * u, 3 * u);
+      }
+    } else if (s.kind === "spiral") {
+      const cx = w / 2,
+        cy = h / 2;
+      const turns = 3.2;
+      const beads = 40;
+      for (let i = 0; i < beads; i++) {
+        const f = i / beads;
+        const a = f * turns * Math.PI * 2 + t * (0.4 + morph * 0.8);
+        const rad = f * Math.min(w, h) * 0.44;
+        const x = cx + Math.cos(a) * rad;
+        const y = cy + Math.sin(a) * rad * 0.6;
+        const beat = morph > 0.5 && i % 8 === step % 8;
+        ctx.globalAlpha = beat ? 0.95 : 0.55;
+        ctx.fillStyle = beat ? COL.red : i % 5 === 0 ? COL.cobalt : "#e8e9ea";
+        ctx.fillRect(x, y, 2 * u, 2 * u);
+      }
+    }
+    ctx.globalAlpha = 1;
   }
 
-  .hero-name {
-    font-family: var(--font-pixel);
-    font-weight: 700;
-    font-size: clamp(2.8rem, 9vw, 4.6rem);
-    line-height: 0.95;
-    margin: 0;
-    color: var(--ink);
+  // ---------- unified loop ----------
+  function frame(now) {
+    const dt = Math.min(0.05, (now - last) / 1000);
+    last = now;
+    if (!document.hidden && !reduce) {
+      acc += dt;
+      while (acc >= STEP) {
+        acc -= STEP;
+        step = (step + 1) % 16;
+      }
+      stepField(dt);
+      drawField();
+      const t = now / 1000;
+      for (const s of screens) drawScreen(s, t);
+    }
+    requestAnimationFrame(frame);
   }
 
-  .role {
-    display: inline-block;
-    font-family: var(--font-mono);
-    font-size: 1.05rem;
-    font-weight: 700;
-    color: var(--accent);
-    margin: 0.7rem 0 0.6rem;
+  function sizeAll() {
+    sizeField();
+    sizeScreens();
   }
+  seedField();
+  sizeAll();
+  // always paint one static frame (covers reduced-motion + hidden-tab first paint)
+  drawField();
+  for (const s of screens) drawScreen(s, 0);
+  addEventListener("resize", () => {
+    sizeAll();
+    drawField();
+    for (const s of screens) drawScreen(s, performance.now() / 1000);
+  });
+  if (!reduce) requestAnimationFrame(frame);
 
-  .tagline {
-    font-size: 1.12rem;
-    color: var(--ink);
-    max-width: 36rem;
-    margin: 0 0 1.9rem;
-  }
+  // ---------- sequencer nav ----------
+  const cells = [...document.querySelectorAll(".seq [data-seq]")];
+  cells.forEach((c) =>
+    c.addEventListener("click", () =>
+      document.getElementById(c.dataset.seq)?.scrollIntoView({ behavior: "smooth" })
+    )
+  );
+  const targets = [...document.querySelectorAll("[data-seq-target]")];
+  const io = new IntersectionObserver(
+    (entries) => {
+      entries.forEach((en) => {
+        if (en.isIntersecting) {
+          const id = en.target.getAttribute("data-seq-target");
+          cells.forEach((c) => c.classList.toggle("active", c.dataset.seq === id));
+        }
+      });
+    },
+    { rootMargin: "-45% 0px -45% 0px" }
+  );
+  targets.forEach((t) => io.observe(t));
 
-  .hero-links {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 0.7rem;
-    padding-bottom: 3.2rem;
-  }
-
-  /* Pixel-dithered flame strip */
-  .flame-strip {
-    height: 16px;
-    background-image:
-      /* checkerboard dither for pixel texture */
-      conic-gradient(
-        rgba(0, 0, 0, 0.16) 90deg,
-        transparent 0 180deg,
-        rgba(0, 0, 0, 0.16) 0 270deg,
-        transparent 0
-      ),
-      /* hard-stop flame bands */
-        linear-gradient(
-          90deg,
-          var(--flame-1) 0 20%,
-          var(--flame-2) 20% 40%,
-          var(--flame-3) 40% 60%,
-          var(--flame-4) 60% 80%,
-          var(--flame-5) 80% 100%
-        );
-    background-size:
-      6px 6px,
-      100% 100%;
-    border-top: 2px solid var(--edge);
-    border-bottom: 2px solid var(--edge);
-  }
-
-  .lead {
-    font-size: 1.05rem;
-    max-width: 44rem;
-  }
-
-  /* Footer */
-  .site-footer {
-    border-top: 2px solid var(--edge);
-    margin-top: 1rem;
-    padding: 1.6rem 0 2.6rem;
-  }
-  .footer-inner {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 0.4rem 1rem;
-    justify-content: space-between;
-    align-items: center;
-    font-family: var(--font-mono);
-    font-size: 0.82rem;
-  }
-  .footer-meta {
-    color: var(--muted);
-  }
-</style>
+  // enable theme crossfade transitions after first paint
+  requestAnimationFrame(() => root.classList.add("ready"));
+</script>
