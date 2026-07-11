@@ -1,8 +1,7 @@
 /* ============================================================
-   BRUIT / SIGNAL — the portfolio is an instrument.
-   A global MORPH knob writes --morph (0..1); the whole page
-   lives on the axis from PLUIE (noise) to SIGNAL (rhythm).
-   Palette & type derived from Tristan's own repos.
+   Portfolio theme — cool bone/graphite, cobalt + red accents,
+   Handjet + IBM Plex Mono. Ambient rain background with the
+   occasional lightning strike. Palette from Tristan's own repos.
    ============================================================ */
 
 :root {
@@ -100,48 +99,21 @@ body {
   z-index: 1;
 }
 
-/* Hero morph visualizer — a dark instrument "screen" */
-.morphviz {
-  margin: 2.2rem 0 0;
-  max-width: 40rem;
-}
-.mv-labels {
-  display: flex;
-  justify-content: space-between;
-  align-items: baseline;
-  font-family: var(--font-mono, "IBM Plex Mono", monospace);
-  font-size: 0.68rem;
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
-  color: var(--muted);
-  margin-bottom: 0.5rem;
-}
-.mv-labels em {
-  font-style: normal;
-  opacity: 0.65;
-}
-.mv-mode {
-  color: var(--cobalt);
-  font-weight: 700;
-}
-.mv-canvas {
-  display: block;
+/* Rain background + lightning overlay */
+#rain {
+  position: fixed;
+  inset: 0;
   width: 100%;
-  height: 116px;
-  background: #0c0d0f;
-  border: 1px solid var(--edge, #2b2d31);
-  border-radius: 5px;
-  touch-action: none;
+  height: 100%;
+  z-index: 0;
+  pointer-events: none;
 }
-.mv-hint {
-  font-size: 0.72rem;
-  letter-spacing: 0.04em;
-  color: var(--muted);
-  margin: 0.6rem 0 0;
-}
-.mv-hint b {
-  color: var(--ink);
-  font-weight: 700;
+#flash {
+  position: fixed;
+  inset: 0;
+  z-index: 50;
+  pointer-events: none;
+  opacity: 0;
 }
 
 a {
@@ -229,54 +201,6 @@ h3 {
   .bar-links {
     display: none;
   }
-}
-
-/* ---------- MORPH knob ---------- */
-.morph {
-  display: inline-flex;
-  align-items: center;
-  gap: 0.6rem;
-  user-select: none;
-}
-.morph-pole {
-  font-size: 0.6rem;
-  text-transform: uppercase;
-  letter-spacing: 0.1em;
-  color: var(--muted);
-  width: 3.2em;
-}
-.morph-pole.right {
-  text-align: left;
-}
-.morph-pole b {
-  color: var(--ink);
-  font-weight: 600;
-}
-.knob {
-  width: 44px;
-  height: 44px;
-  cursor: ns-resize;
-  touch-action: none;
-  display: block;
-}
-.knob:focus-visible {
-  outline: 2px solid var(--cobalt);
-  outline-offset: 3px;
-  border-radius: 50%;
-}
-.knob .dial {
-  fill: var(--surface);
-  stroke: var(--ink);
-  stroke-width: 2;
-}
-.knob .ind {
-  stroke: var(--cobalt);
-  stroke-width: 2.5;
-  stroke-linecap: round;
-}
-.knob .tick {
-  stroke: var(--border);
-  stroke-width: 1.5;
 }
 
 /* theme fader */
