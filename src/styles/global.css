@@ -491,6 +491,10 @@ a.card-cta.muted:hover {
   font-size: 0.8rem;
   margin: 0.15rem 0 0.5rem;
 }
+.item-where {
+  color: var(--muted);
+  margin-left: 0.35rem;
+}
 .item-desc {
   color: var(--muted);
   margin: 0;

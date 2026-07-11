@@ -6,33 +6,55 @@ import BaseLayout from "../layouts/BaseLayout.astro";
 // ─────────────────────────────────────────────────────────────
 const cv = {
   name: "Tristan Weber",
-  role: "Creative Technologist · Developer",
+  role: "AI / Machine Learning Engineer",
   tagline:
-    "I shape noise into rhythm — generative, interactive audio-visual instruments that morph one thing into another.",
-  location: "France",
+    "ML / AI engineer — I build deep-learning models for time-series and data, and generative, interactive audio-visual instruments that turn noise into rhythm.",
+  location: "Paris, France",
   email: "webertristan2000@gmail.com",
   links: {
     github: "https://github.com/titille",
-    linkedin: "https://www.linkedin.com/in/your-handle",
+    linkedin: "https://www.linkedin.com/in/tristan-weber-173158208/",
   },
 
   about:
-    "Short introduction about yourself. Talk about what you do, what you're passionate about, and what kind of role or projects you're looking for. Two or three sentences is plenty.",
+    "I'm an AI / machine-learning engineer based in Paris, with an M2 in Applied Mathematics & Data Science from Paris 1 Panthéon-Sorbonne. I've built ML/DL systems for time-series prediction, data-quality analysis and internal tooling at Bureau Veritas, RTE and Arrago. On the side I make generative, interactive audio-visual instruments — a few are below.",
 
   experience: [
     {
-      title: "Job Title",
-      company: "Company Name",
-      period: "2023 — Present",
+      title: "Quantitative Data Analyst",
+      company: "Arrago",
+      type: "Internship",
+      where: "Paris",
+      period: "Feb 2026 — Present",
       description:
-        "Describe your responsibilities and biggest achievements. Use numbers when you can (e.g. improved load time by 40%).",
+        "Building and automating internal tools to streamline the team's processes, with documentation and continuous improvement.",
     },
     {
-      title: "Previous Job Title",
-      company: "Previous Company",
-      period: "2021 — 2023",
+      title: "Machine Learning / Deep Learning Engineer",
+      company: "Bureau Veritas — Marine & Offshore",
+      type: "Internship",
+      where: "Paris La Défense",
+      period: "Apr 2025 — Oct 2025",
       description:
-        "Another role. Keep each entry concise and focused on impact rather than a list of tasks.",
+        "Time-series prediction on CFD sloshing simulations. Built ML/DL models in Python (XGBoost, MLP, LSTM) and ran training, optimization and fine-tuning with PyTorch / Keras and Optuna (hyperparameter search, validation).",
+    },
+    {
+      title: "Data Quality / Telemetry Analyst",
+      company: "RTE — Réseau de Transport d'Électricité",
+      type: "Internship",
+      where: "Paris La Défense",
+      period: "Apr 2023 — Sep 2023",
+      description:
+        "Analyzed data quality and transmission losses on grid telemetry. Extracted data on Linux, then cleaned, ran consistency/completeness checks and anomaly detection in Python, reconciled missing telemetry via correlations and loss scenarios, and delivered usable datasets.",
+    },
+    {
+      title: "Mathematics Tutor (MIASHS)",
+      company: "Université Paris 1 Panthéon-Sorbonne",
+      type: "Part-time",
+      where: "Paris",
+      period: "Sep 2020 — Apr 2023",
+      description:
+        "Tutored first-year MIASHS students in Analysis, Algebra, Probability and Python — methodology coaching, exercise correction and exam prep.",
     },
   ],
 
@@ -62,21 +84,31 @@ const cv = {
   ],
 
   skills: [
-    "JavaScript",
-    "TypeScript",
-    "Web Audio / DSP",
-    "Canvas / WebGL",
-    "Three.js",
-    "Astro",
-    "Node.js",
     "Python",
-    "Git",
+    "PyTorch",
+    "Keras",
+    "Machine Learning",
+    "Deep Learning",
+    "Time-Series Forecasting",
+    "XGBoost",
+    "Optuna",
+    "Pandas / NumPy",
+    "Data Analysis",
+    "JavaScript / TypeScript",
+    "Web Audio / DSP",
+    "Three.js",
+    "Git · Linux",
   ],
 
   education: [
     {
-      title: "Your Degree",
-      school: "University / School Name",
+      title: "M2 · Applied Mathematics & Data Science (MMMEF)",
+      school: "Université Paris 1 Panthéon-Sorbonne",
+      period: "2022 — 2023",
+    },
+    {
+      title: "Bachelor's · Mathematics & Computer Science (MIASHS)",
+      school: "Université Paris 1 Panthéon-Sorbonne",
       period: "2018 — 2021",
     },
   ],
@@ -234,7 +266,10 @@ const sections = [
                 <h3 class="item-title">{job.title}</h3>
                 <span class="item-meta">{job.period}</span>
               </div>
-              <p class="item-sub">{job.company}</p>
+              <p class="item-sub">
+                {job.company}
+                <span class="item-where">· {job.type} · {job.where}</span>
+              </p>
               <p class="item-desc">{job.description}</p>
             </div>
           ))
