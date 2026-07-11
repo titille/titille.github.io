@@ -177,9 +177,20 @@ const sections = [
             <a href={cv.links.github} target="_blank" rel="noopener">GitHub</a>
           </div>
 
-          <button class="fader" id="themeToggle" aria-label="Toggle theme" title="Toggle light / dark">
-            <span class="fader-thumb"></span>
-          </button>
+          <div class="theme-ctl">
+            <span class="theme-labs">
+              <span class="theme-lab lab-day">with me</span>
+              <span class="theme-lab lab-night">without me</span>
+            </span>
+            <button
+              class="fader"
+              id="themeToggle"
+              aria-label="Toggle day / night"
+              title="With me, it's sunny. Without me… it gets complicated."
+            >
+              <span class="fader-thumb"></span>
+            </button>
+          </div>
         </div>
       </div>
     </header>

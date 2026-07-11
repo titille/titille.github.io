@@ -228,6 +228,40 @@ h3 {
   transform: translateY(14px);
 }
 
+/* theme toggle with a wink: "with me" (sunny) / "without me" (storm) */
+.theme-ctl {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45rem;
+}
+.theme-labs {
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  height: 30px;
+  text-align: right;
+  font-family: var(--mono);
+  font-size: 0.52rem;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  line-height: 1;
+}
+.theme-lab {
+  color: var(--muted);
+  transition: color 0.2s;
+}
+:root[data-theme="light"] .lab-day,
+:root:not([data-theme]) .lab-day,
+:root[data-theme="dark"] .lab-night {
+  color: var(--cobalt);
+  font-weight: 700;
+}
+@media (max-width: 620px) {
+  .theme-labs {
+    display: none;
+  }
+}
+
 /* ---------- Sections (technical score) ---------- */
 main {
   padding-bottom: 1rem;
