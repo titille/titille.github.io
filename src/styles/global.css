@@ -95,19 +95,53 @@ body {
     border-color 0.45s steps(7);
 }
 
-/* Background rain/grid canvas */
-#field {
-  position: fixed;
-  inset: 0;
-  width: 100%;
-  height: 100%;
-  z-index: 0;
-  pointer-events: none;
-}
-
 .wrap {
   position: relative;
   z-index: 1;
+}
+
+/* Hero morph visualizer — a dark instrument "screen" */
+.morphviz {
+  margin: 2.2rem 0 0;
+  max-width: 40rem;
+}
+.mv-labels {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  font-family: var(--font-mono, "IBM Plex Mono", monospace);
+  font-size: 0.68rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--muted);
+  margin-bottom: 0.5rem;
+}
+.mv-labels em {
+  font-style: normal;
+  opacity: 0.65;
+}
+.mv-mode {
+  color: var(--cobalt);
+  font-weight: 700;
+}
+.mv-canvas {
+  display: block;
+  width: 100%;
+  height: 116px;
+  background: #0c0d0f;
+  border: 1px solid var(--edge, #2b2d31);
+  border-radius: 5px;
+  touch-action: none;
+}
+.mv-hint {
+  font-size: 0.72rem;
+  letter-spacing: 0.04em;
+  color: var(--muted);
+  margin: 0.6rem 0 0;
+}
+.mv-hint b {
+  color: var(--ink);
+  font-weight: 700;
 }
 
 a {

@@ -127,8 +127,6 @@ const sections = [
 ---
 
 <BaseLayout title={`${cv.name} — ${cv.role}`} description={cv.tagline}>
-  <canvas id="field" aria-hidden="true"></canvas>
-
   <!-- Sequencer nav -->
   <nav class="seq" aria-label="Section navigation">
     {
@@ -206,7 +204,17 @@ const sections = [
           <a class="btn" href={cv.links.github} target="_blank" rel="noopener">GitHub</a>
           <a class="btn" href={cv.links.linkedin} target="_blank" rel="noopener">LinkedIn</a>
         </div>
-        <p class="hint">↗ turn the knob — the rain becomes a groove</p>
+        <figure class="morphviz">
+          <figcaption class="mv-labels">
+            <span>◍ PLUIE <em>· rain</em></span>
+            <span class="mv-mode" id="mvMode">— scattered noise</span>
+            <span><em>groove ·</em> SIGNAL ▦</span>
+          </figcaption>
+          <canvas id="mviz" class="mv-canvas" aria-hidden="true"></canvas>
+          <p class="mv-hint">
+            turn the <b>MORPH</b> knob ↑ (or drag here) — watch the rain lock into a hi-hat groove
+          </p>
+        </figure>
       </div>
     </section>
 
@@ -349,6 +357,7 @@ const sections = [
   const knobInd = document.getElementById("knobInd");
   const poleL = document.getElementById("poleL");
   const poleR = document.getElementById("poleR");
+  const mvMode = document.getElementById("mvMode");
 
   function applyMorph(v) {
     morph = Math.max(0, Math.min(1, v));
@@ -362,6 +371,15 @@ const sections = [
     if (knob) knob.setAttribute("aria-valuenow", String(Math.round(morph * 100)));
     poleL && poleL.classList.toggle("on", morph < 0.5);
     poleR && poleR.classList.toggle("on", morph >= 0.5);
+    if (mvMode)
+      mvMode.textContent =
+        morph < 0.2
+          ? "— scattered rain"
+          : morph < 0.55
+            ? "— quantizing…"
+            : morph < 0.9
+              ? "— locking to the grid"
+              : "— 16-step groove";
   }
   applyMorph(morph);
 
@@ -415,58 +433,121 @@ const sections = [
     acc = 0,
     last = performance.now();
 
-  // ---------- background rain / signal field ----------
-  const field = document.getElementById("field");
-  const fctx = field.getContext("2d");
-  let W = 0,
-    H = 0,
+  // ---------- hero morph visualizer: rain (PLUIE) → hi-hat groove (SIGNAL) ----------
+  // Screen is always dark, so use fixed light-on-dark colours (not theme tokens).
+  const S_GUIDE = "#8d9198",
+    S_INK = "#e8eaf0",
+    S_COBALT = "#7c97ff",
+    S_RED = "#ff5147";
+  const PAT = [2, 1, 1, 1, 2, 1, 1, 1, 2, 1, 1, 1, 2, 1, 1, 1]; // 2 = accent (beat)
+
+  const mviz = document.getElementById("mviz");
+  const mctx = mviz.getContext("2d");
+  let mw = 0,
+    mh = 0,
     dpr = 1;
-  const drops = [];
-  function seedField() {
-    drops.length = 0;
-    const n = Math.min(120, Math.floor(innerWidth / 12));
-    for (let i = 0; i < n; i++) {
-      drops.push({
-        col: i % 16,
+  const rain = [];
+  function seedRain() {
+    rain.length = 0;
+    for (let i = 0; i < 64; i++) {
+      rain.push({
+        col: (i * 5) % 16,
         rx: Math.random(),
         y: Math.random(),
-        vy: 0.06 + Math.random() * 0.12,
+        vy: 0.45 + Math.random() * 0.55,
+        len: 7 + Math.random() * 11,
       });
     }
   }
-  function sizeField() {
+  function sizeMviz() {
     dpr = Math.min(2, devicePixelRatio || 1);
-    W = field.width = Math.floor(innerWidth * dpr);
-    H = field.height = Math.floor(innerHeight * dpr);
-    field.style.width = innerWidth + "px";
-    field.style.height = innerHeight + "px";
+    const r = mviz.getBoundingClientRect();
+    mw = mviz.width = Math.max(1, Math.floor(r.width * dpr));
+    mh = mviz.height = Math.max(1, Math.floor(r.height * dpr));
   }
-  function drawField() {
-    fctx.clearRect(0, 0, W, H);
-    const m = morph;
-    const dot = 2 * dpr;
-    for (const d of drops) {
-      const gridX = ((d.col + 0.5) / 16) * W;
-      const x = (d.rx * W) * (1 - m) + gridX * m;
-      const y = d.y * H;
-      const onBeat = m > 0.5 && d.col === step;
-      fctx.globalAlpha = onBeat ? 0.6 : 0.14 + m * 0.08;
-      fctx.fillStyle = onBeat ? COL.red : COL.ink;
-      fctx.fillRect(x - dot / 2, y - dot / 2, dot, dot * (1 + m));
+  let flash = 0,
+    flashCol = 0;
+  function onStep() {
+    if (PAT[step] === 2 && morph > 0.25) {
+      flash = 1;
+      flashCol = step;
     }
-    fctx.globalAlpha = 1;
   }
-  function stepField(dt) {
-    for (const d of drops) {
-      d.y += d.vy * dt * (0.6 + morph * 0.9);
-      if (d.y > 1) {
-        d.y -= 1;
+  function drawMviz(dt) {
+    const m = morph;
+    mctx.clearRect(0, 0, mw, mh);
+    const colW = mw / 16;
+    const yb = mh * 0.76; // sequencer baseline
+    flash = Math.max(0, flash - dt * 3.2);
+
+    // SIGNAL layer — grid guides, playhead band, step cells (alpha ∝ m)
+    mctx.lineWidth = 1 * dpr;
+    for (let i = 0; i < 16; i++) {
+      const cx = (i + 0.5) * colW;
+      mctx.globalAlpha = m * 0.13;
+      mctx.strokeStyle = S_GUIDE;
+      mctx.beginPath();
+      mctx.moveTo(cx, mh * 0.14);
+      mctx.lineTo(cx, yb);
+      mctx.stroke();
+    }
+    if (m > 0.06) {
+      mctx.globalAlpha = m * 0.2;
+      mctx.fillStyle = S_COBALT;
+      mctx.fillRect(step * colW, mh * 0.12, colW, yb - mh * 0.12);
+    }
+    for (let i = 0; i < 16; i++) {
+      const cx = (i + 0.5) * colW;
+      const accent = PAT[i] === 2;
+      const active = i === step;
+      let size = (accent ? 5 : 3) * dpr;
+      let alpha = m * (accent ? 0.9 : 0.5);
+      let color = S_INK;
+      if (active && m > 0.06) {
+        size += 2.5 * dpr;
+        alpha = Math.min(1, alpha + 0.35);
+        color = S_COBALT;
+      }
+      if (active && accent && m > 0.25) color = S_RED;
+      mctx.globalAlpha = alpha;
+      mctx.fillStyle = color;
+      mctx.fillRect(cx - size / 2, yb - size / 2, size, size);
+    }
+    if (flash > 0) {
+      mctx.globalAlpha = flash * m * 0.85;
+      mctx.strokeStyle = S_RED;
+      mctx.lineWidth = 2 * dpr;
+      mctx.beginPath();
+      mctx.arc((flashCol + 0.5) * colW, yb, (1 - flash) * 20 * dpr + 4 * dpr, 0, 6.2832);
+      mctx.stroke();
+    }
+
+    // PLUIE layer — rain streaks (alpha ∝ 1−m), drifting from random x toward columns
+    mctx.lineWidth = 1.6 * dpr;
+    mctx.strokeStyle = S_COBALT;
+    for (const d of rain) {
+      const homeX = (d.col + 0.5) * colW;
+      const x = d.rx * mw * (1 - m) + homeX * m;
+      const y = d.y * mh;
+      mctx.globalAlpha = 0.1 + (1 - m) * 0.42;
+      mctx.beginPath();
+      mctx.moveTo(x, y);
+      mctx.lineTo(x, y + d.len * dpr * (1 - m * 0.7));
+      mctx.stroke();
+    }
+    mctx.globalAlpha = 1;
+  }
+  function stepRain(dt) {
+    for (const d of rain) {
+      d.y += d.vy * dt * (1.1 - morph * 0.55);
+      if (d.y > 1.05) {
+        d.y = -0.05;
         d.rx = Math.random();
       }
     }
   }
 
-  // ---------- background loop ----------
+  // ---------- loop ----------
   function frame(now) {
     const dt = Math.min(0.05, (now - last) / 1000);
     last = now;
@@ -475,22 +556,36 @@ const sections = [
       while (acc >= STEP) {
         acc -= STEP;
         step = (step + 1) % 16;
+        onStep();
       }
-      stepField(dt);
-      drawField();
+      stepRain(dt);
+      drawMviz(dt);
     }
     requestAnimationFrame(frame);
   }
 
-  seedField();
-  sizeField();
-  // always paint one static frame (covers reduced-motion + hidden-tab first paint)
-  drawField();
+  seedRain();
+  sizeMviz();
+  drawMviz(0); // static first frame (reduced-motion + hidden-tab)
   addEventListener("resize", () => {
-    sizeField();
-    drawField();
+    sizeMviz();
+    drawMviz(0);
   });
   if (!reduce) requestAnimationFrame(frame);
+
+  // drag horizontally on the visualizer to morph (in addition to the knob)
+  {
+    let dv = false;
+    mviz.style.cursor = "ew-resize";
+    mviz.addEventListener("pointerdown", (e) => {
+      dv = true;
+      mviz.setPointerCapture(e.pointerId);
+    });
+    mviz.addEventListener("pointermove", (e) => {
+      if (dv) applyMorph(morph + e.movementX * 0.0045);
+    });
+    mviz.addEventListener("pointerup", () => (dv = false));
+  }
 
   // ---------- sequencer nav ----------
   const cells = [...document.querySelectorAll(".seq [data-seq]")];
