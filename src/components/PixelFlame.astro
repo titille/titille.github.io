@@ -1,0 +1,42 @@
+---
+// Pixel-art flame in Mistral's flame-gradient colors.
+// Size is controlled by the parent's font-size (uses em) or the `size` prop.
+interface Props {
+  size?: string;
+  class?: string;
+}
+const { size = "1em", class: className = "" } = Astro.props;
+
+const Y = "#FFD800"; // flame-yellow
+const OL = "#FFAF00"; // orange-light
+const O = "#FF8205"; // orange
+const OD = "#FA500F"; // orange-dark
+const R = "#E10500"; // flame-red
+
+// [x, y, color] — a teardrop flame on a 9×11 pixel grid.
+const px: [number, number, string][] = [
+  [4, 0, Y],
+  [3, 1, Y], [4, 1, Y],
+  [3, 2, Y], [4, 2, Y], [5, 2, Y],
+  [2, 3, OL], [3, 3, OL], [4, 3, OL], [5, 3, OL],
+  [2, 4, O], [3, 4, O], [4, 4, O], [5, 4, O], [6, 4, O],
+  [1, 5, O], [2, 5, O], [5, 5, O], [6, 5, O], [3, 5, Y], [4, 5, Y],
+  [1, 6, OD], [2, 6, OD], [5, 6, OD], [6, 6, OD], [7, 6, OD], [3, 6, OL], [4, 6, OL],
+  [1, 7, R], [2, 7, R], [3, 7, R], [5, 7, R], [6, 7, R], [7, 7, R], [4, 7, O],
+  [2, 8, R], [3, 8, R], [4, 8, R], [5, 8, R], [6, 8, R],
+  [3, 9, R], [4, 9, R], [5, 9, R],
+  [4, 10, OD],
+];
+---
+
+<svg
+  viewBox="0 0 9 11"
+  width={size}
+  height={size}
+  class={className}
+  shape-rendering="crispEdges"
+  aria-hidden="true"
+  style="display:inline-block;vertical-align:middle"
+>
+  {px.map(([x, y, fill]) => <rect x={x} y={y} width="1" height="1" fill={fill} />)}
+</svg>
