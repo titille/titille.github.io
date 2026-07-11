@@ -3,128 +3,65 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
-  <title>rain → hihat — granular morph synth</title>
-  <link rel="preconnect" href="https://fonts.googleapis.com" />
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-  <link href="https://fonts.googleapis.com/css2?family=Martian+Mono:wght@300;400;500;600;700;800&display=swap" rel="stylesheet" />
+  <title>pluie → hihat — synthé physique + pixel art</title>
   <link rel="stylesheet" href="styles.css" />
 </head>
 <body>
-  <div class="device" id="device">
+  <!-- la scène pixel art occupe TOUT l'écran ; l'UI est un HUD posé dessus -->
+  <canvas id="stage"></canvas>
+  <div class="scanlines" aria-hidden="true"></div>
+
+  <div class="hud">
     <header class="topbar">
-      <div class="brand">
-        <span class="orb"></span>
-        <h1>RAIN <em>→</em> HIHAT</h1>
-        <small>granular morph synth</small>
+      <div class="chip brand">
+        <h1>PLUIE <em>►</em> HIHAT</h1>
+        <small>SYNTHÉ PHYSIQUE · PIXEL ART</small>
       </div>
-      <div class="modes">
-        <button class="mode-btn on" data-mode="synth">SYNTH</button>
-        <button class="mode-btn" data-mode="beach">PLAGE</button>
-        <button class="mode-btn" data-mode="grow">GROW</button>
-      </div>
-      <div class="out">
+      <div class="chip out">
         <span class="cap">OUT</span>
-        <canvas id="meter" width="120" height="8"></canvas>
-        <input id="master" class="vol" type="range" min="0" max="1" step="0.01" value="0.8" aria-label="master volume" />
-        <button id="info-btn" class="iconbtn" title="infos paramètres" aria-label="infos">i</button>
+        <canvas id="meter" width="84" height="10"></canvas>
+        <input id="master" class="vol" type="range" min="0" max="1" step="0.01" value="0.8" aria-label="volume master" />
+        <button id="info-btn" class="iconbtn" title="infos paramètres" aria-label="infos">?</button>
       </div>
     </header>
 
-    <canvas id="stage"></canvas>
-
-    <div id="synth-controls">
-    <main class="panel">
-      <section class="morph-zone">
-        <div class="ends"><span>RAIN</span><span>HI&#8209;HAT</span></div>
-        <div id="morph-slot"></div>
-        <p class="hint">glisser · double&#8209;clic = reset · maj = fin</p>
-      </section>
-      <section class="knobs-zone">
-        <div id="knobs" class="knob-grid"></div>
-        <p class="hint linkhint"><span class="pip"></span> = suit le morph (clic pour décrocher)</p>
-      </section>
-    </main>
-
-    <canvas id="spectrum"></canvas>
-
-    <footer class="transport">
-      <div class="bank"><span class="bank-cap">PRESETS</span><div class="presetbar" id="presets"></div></div>
-      <div class="bank"><span class="bank-cap">TRANSITIONS</span><div class="presetbar" id="transitions"></div></div>
-      <div class="bank"><span class="bank-cap">ÉDITEUR</span>
-        <div class="editor">
-          <button id="setA" class="mini">SET A</button><span id="indA" class="slot">A —</span>
-          <button id="setB" class="mini">SET B</button><span id="indB" class="slot">B —</span>
-          <button id="runAB" class="btn small" disabled><span class="ico">▸</span><span class="lbl">A→B</span></button>
-          <button id="saveAB" class="mini" disabled>SAVE</button>
-          <span class="hint editor-hint">capture l’état courant en A puis B</span>
-        </div>
+    <footer class="dock">
+      <div class="dock-main">
+        <section class="morph-zone">
+          <div class="ends"><span>NATURE</span><span>BEAT</span></div>
+          <div id="morph-slot"></div>
+        </section>
+        <section class="knobs-zone">
+          <div class="modrow" id="modules"></div>
+          <div id="knobs"></div>
+        </section>
       </div>
-      <div class="controls">
-        <button id="play" class="btn play"><span class="ico">▶</span><span class="lbl">PLAY</span></button>
-        <label class="scene-sel">SCÈNE<select id="scene">
-          <option value="rain">🌧 pluie</option>
-          <option value="waves">🌊 vagues</option>
-          <option value="wind">💨 vent</option>
-          <option value="fire">🔥 feu</option>
-        </select></label>
-        <div class="auto">
-          <span class="auto-cap">AUTO</span>
-          <label class="dur">DUR<input id="dur" type="number" value="8" min="1" max="120" step="1" /><span>s</span></label>
-          <select id="automode" aria-label="mode automation">
-            <option value="up">↑ pluie→hihat</option>
-            <option value="down">↓ hihat→pluie</option>
-            <option value="loop">⇄ boucle</option>
-          </select>
-          <button id="run" class="btn"><span class="ico">⟳</span><span class="lbl">RUN</span></button>
-        </div>
-        <div class="auto tempo">
-          <button id="sync" class="mini">SYNC</button>
-          <label class="dur">BPM<input id="bpm" type="number" value="120" min="40" max="220" step="1" /></label>
-          <select id="div" aria-label="subdivision">
+      <div class="dock-bottom">
+        <button id="play" class="btn play"><span class="lbl">► PLAY</span></button>
+        <button id="sweep" class="btn"><span class="lbl">⇄ SWEEP 8s</span></button>
+        <div class="presetbar" id="presets"></div>
+        <div class="tempo">
+          <span class="cap">HI-HAT</span>
+          <label class="field">BPM<input id="bpm" type="number" value="120" min="40" max="220" step="1" /></label>
+          <select id="subdiv" aria-label="subdivision">
             <option value="1">1/4</option>
             <option value="2">1/8</option>
             <option value="3">1/8T</option>
             <option value="4" selected>1/16</option>
           </select>
-          <button id="tap" class="mini">TAP</button>
         </div>
-        <label class="seed">SEED<input id="seed" type="number" value="1" min="0" step="1" /></label>
+        <label class="field seed">SEED<input id="seed" type="number" value="1" min="0" step="1" /></label>
       </div>
     </footer>
-    </div>
+  </div>
 
-    <div id="beach-controls" hidden>
-      <div class="beach-strips">
-        <div class="el"><button class="el-tog" id="be-waves">🌊 vagues</button><input class="el-lvl" id="bl-waves" type="range" min="0" max="1" step="0.01" /></div>
-        <div class="el"><button class="el-tog" id="be-wind">💨 vent</button><input class="el-lvl" id="bl-wind" type="range" min="0" max="1" step="0.01" /></div>
-        <div class="el"><button class="el-tog" id="be-rain">🌧 pluie</button><input class="el-lvl" id="bl-rain" type="range" min="0" max="1" step="0.01" /></div>
-        <div class="el"><button class="el-tog" id="be-fire">🔥 feu</button><input class="el-lvl" id="bl-fire" type="range" min="0" max="1" step="0.01" /></div>
-        <div class="el"><button class="el-tog" id="be-storm">⚡ orage</button><input class="el-lvl" id="bl-storm" type="range" min="0" max="1" step="0.01" /></div>
+  <div id="info" class="info-overlay" hidden>
+    <div class="info-card">
+      <div class="info-head">
+        <h2>PARAMÈTRES &amp; PHYSIQUE</h2>
+        <button id="info-close" aria-label="fermer">×</button>
       </div>
-      <div class="controls">
-        <button id="play-beach" class="btn play"><span class="ico">▶</span><span class="lbl">PLAY</span></button>
-        <span class="hint">active des éléments et compose ta plage — chacun a son son + son visuel</span>
-      </div>
-    </div>
-
-    <div id="grow-controls" hidden>
-      <canvas id="garden"></canvas>
-      <div class="grow-bar">
-        <button id="grow-seed" class="btn"><span class="ico">✦</span><span>SEMER</span></button>
-        <button id="grow-back" class="btn"><span class="ico">←</span><span>RETOUR</span></button>
-        <button id="grow-save" class="btn"><span class="ico">★</span><span>SAUVER</span></button>
-        <span class="hint">survole une branche pour l'écouter · clique pour grandir · SAUVER ajoute la graine aux presets (onglet SYNTH)</span>
-      </div>
-    </div>
-
-    <div id="info" class="info-overlay" hidden>
-      <div class="info-card">
-        <div class="info-head">
-          <h2>paramètres</h2>
-          <button id="info-close" aria-label="fermer">×</button>
-        </div>
-        <div id="info-list" class="info-list"></div>
-      </div>
+      <div id="info-list" class="info-list"></div>
     </div>
   </div>
 

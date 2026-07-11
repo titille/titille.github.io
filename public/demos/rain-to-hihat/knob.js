@@ -1,27 +1,27 @@
-// Custom rotary knob: vertical-drag to turn, shift = fine, double-click resets,
-// wheel nudges. Renders an SVG arc that fills with the (morph-driven) accent.
-const A0 = -135, A1 = 135; // sweep range in degrees
-const NS = 'http://www.w3.org/2000/svg';
+// Knob pixel art : dessiné sur canvas en grosses cellules (pas d'arc lissé,
+// pas d'anti-aliasing) — anneau de pixels cranté, pointeur en escalier.
+// Interactions : glisser vertical, maj = fin, double-clic = reset, molette.
+const A0 = -135, A1 = 135;           // plage de rotation en degrés
+const N = 15;                        // grille de cellules (impair, centre 7)
 
-function polar(cx, cy, r, deg) {
-  const a = ((deg - 90) * Math.PI) / 180;
-  return [cx + r * Math.cos(a), cy + r * Math.sin(a)];
-}
-function arcPath(cx, cy, r, a0, a1) {
-  const [x0, y0] = polar(cx, cy, r, a0);
-  const [x1, y1] = polar(cx, cy, r, a1);
-  const large = a1 - a0 > 180 ? 1 : 0;
-  return `M ${x0} ${y0} A ${r} ${r} 0 ${large} 1 ${x1} ${y1}`;
+const registry = [];                 // pour redessiner tous les knobs quand
+                                     // l'accent morphe (cyan → ambre)
+
+function cssVar(name) {
+  return getComputedStyle(document.documentElement).getPropertyValue(name).trim();
 }
 
 export class Knob {
   constructor({ id, label, min, max, def, log = false, big = false, fmt = (v) => v.toFixed(2), onChange }) {
-    Object.assign(this, { id, label, min, max, def, log, fmt, onChange });
+    Object.assign(this, { id, label, min, max, def, log, fmt, onChange, big });
     this.value = def;
-    this.linked = false; // managed externally for "follow morph" knobs
-    this._build(big);
+    this.linked = false;             // géré par app.js pour les knobs "suit le morph"
+    this._build();
     this.setValue(def, true);
+    registry.push(this);
   }
+
+  static refreshAll() { for (const k of registry) k._draw(); }
 
   _norm(v) {
     if (this.log) return Math.log(v / this.min) / Math.log(this.max / this.min);
@@ -33,34 +33,36 @@ export class Knob {
     return this.min + t * (this.max - this.min);
   }
 
-  _build(big) {
-    const size = big ? 132 : 66;
-    const r = size / 2 - (big ? 9 : 6);
-    const cx = size / 2, cy = size / 2;
+  _build() {
+    const cell = this.big ? 8 : 4;
+    const size = N * cell;           // px CSS
 
     const el = document.createElement('div');
-    el.className = 'knob' + (big ? ' knob--lg' : '');
+    el.className = 'knob' + (this.big ? ' knob--lg' : '');
     el.innerHTML = `<div class="knob-dial" style="width:${size}px;height:${size}px">
-      <svg width="${size}" height="${size}" viewBox="0 0 ${size} ${size}">
-        <path class="k-track" d="${arcPath(cx, cy, r, A0, A1)}" fill="none" stroke-width="${big ? 5 : 4}" stroke-linecap="round"/>
-        <path class="k-val" d="" fill="none" stroke-width="${big ? 5 : 4}" stroke-linecap="round"/>
-        <line class="k-ptr" x1="${cx}" y1="${cy}" x2="${cx}" y2="${cy - r + (big ? 12 : 8)}" stroke-width="${big ? 3 : 2}" stroke-linecap="round"/>
-        <circle class="k-cap" cx="${cx}" cy="${cy}" r="${big ? 30 : 15}"/>
-      </svg>
-      <div class="knob-readout">${big ? '' : '<span class="k-link" title="suit le morph"></span>'}<span class="k-value"></span></div>
+      <canvas width="${size}" height="${size}" style="width:${size}px;height:${size}px"></canvas>
+      <div class="knob-readout">${this.big ? '' : '<span class="k-link" title="suit le morph"></span>'}<span class="k-value"></span></div>
     </div>
     <div class="knob-label">${this.label}</div>`;
 
     this.el = el;
-    this.svg = el.querySelector('svg');
-    this.valArc = el.querySelector('.k-val');
-    this.ptr = el.querySelector('.k-ptr');
+    this.cv = el.querySelector('canvas');
+    this.cell = cell;
+    // backing store en pixels machine pour des cellules nettes
+    const dpr = window.devicePixelRatio || 1;
+    this.cv.width = Math.round(size * dpr);
+    this.cv.height = Math.round(size * dpr);
+    this.px = (size * dpr) / N;      // taille d'une cellule en px machine
+    this.kctx = this.cv.getContext('2d');
     this.valText = el.querySelector('.k-value');
     this.linkDot = el.querySelector('.k-link');
-    this.r = r; this.cx = cx; this.cy = cy;
 
     if (this.linkDot) {
-      this.linkDot.addEventListener('click', (e) => { e.stopPropagation(); this.setLinked(!this.linked); this.onChange?.(this.value, this, 'link'); });
+      this.linkDot.addEventListener('click', (e) => {
+        e.stopPropagation();
+        this.setLinked(!this.linked);
+        this.onChange?.(this.value, this, 'link');
+      });
     }
 
     const dial = el.querySelector('.knob-dial');
@@ -101,13 +103,44 @@ export class Knob {
     this.el.classList.toggle('linked', on);
   }
 
-  // silent=true updates visuals without firing onChange (used by morph-follow).
+  // silent=true : met à jour le visuel sans déclencher onChange (suivi du morph)
   setValue(v, _silent) {
     this.value = Math.min(this.max, Math.max(this.min, v));
-    const t = this._norm(this.value);
-    const a = A0 + (A1 - A0) * t;
-    this.valArc.setAttribute('d', arcPath(this.cx, this.cy, this.r, A0, a));
-    this.ptr.setAttribute('transform', `rotate(${a} ${this.cx} ${this.cy})`);
     this.valText.textContent = this.fmt(this.value);
+    this._draw();
+  }
+
+  // rendu cellule par cellule : anneau cranté + pointeur en escalier
+  _draw() {
+    const ctx = this.kctx, px = this.px, c = (N - 1) / 2;
+    const t = this._norm(this.value);
+    const aVal = A0 + (A1 - A0) * t;
+    const accent = cssVar('--accent') || '#54aabf';
+    const track = '#222733', cap = '#0e1116', ptr = '#e9ecf1';
+
+    ctx.clearRect(0, 0, this.cv.width, this.cv.height);
+    for (let j = 0; j < N; j++) {
+      for (let i = 0; i < N; i++) {
+        const dx = i - c, dy = j - c;
+        const dist = Math.hypot(dx, dy);
+        let fill = null;
+        if (dist >= 5.1 && dist <= 7.0) {
+          // angle 0 = haut, sens horaire, en degrés
+          const ang = (Math.atan2(dx, -dy) * 180) / Math.PI;
+          if (ang >= A0 - 4 && ang <= A1 + 4) fill = ang <= aVal ? accent : track;
+        } else if (dist <= 3.4) {
+          fill = cap;
+        }
+        if (fill) { ctx.fillStyle = fill; ctx.fillRect(Math.round(i * px), Math.round(j * px), Math.ceil(px), Math.ceil(px)); }
+      }
+    }
+    // pointeur : 3 cellules en escalier du centre vers l'angle courant
+    const rad = ((aVal - 90) * Math.PI) / 180;
+    ctx.fillStyle = ptr;
+    for (const rr of [1.6, 2.6, 3.6]) {
+      const i = Math.round(c + Math.cos(rad) * rr);
+      const j = Math.round(c + Math.sin(rad) * rr);
+      ctx.fillRect(Math.round(i * px), Math.round(j * px), Math.ceil(px), Math.ceil(px));
+    }
   }
 }
