@@ -10,11 +10,11 @@
   --wght: 470; /* display weight, driven by morph */
   --ease: cubic-bezier(0.2, 0.7, 0.3, 1); /* swaps to steps() near SIGNAL */
 
-  /* Light — "studio, day" (bone white, not cream) */
-  --bg: #f4f5f2;
-  --surface: #ecede8;
+  /* Light — "day": sky-blue backdrop (canvas paints sky, this matches) */
+  --bg: #cbe6f5;
+  --surface: #eef4f2;
   --ink: #16181a;
-  --muted: #6b7076;
+  --muted: #545c66;
   --border: #d8dad4;
   --cobalt: #0044bb; /* signal — interaction only */
   --red: #d40000; /* pulse — rhythm/beat only */
@@ -33,7 +33,7 @@
 }
 
 :root[data-theme="dark"] {
-  --bg: #121316;
+  --bg: #0f1524;
   --surface: #1a1b1d;
   --ink: #f2f3ef;
   --muted: #8d9198;
@@ -49,7 +49,7 @@
 /* no-JS fallback */
 @media (prefers-color-scheme: dark) {
   :root:not([data-theme]) {
-    --bg: #121316;
+    --bg: #0f1524;
     --surface: #1a1b1d;
     --ink: #f2f3ef;
     --muted: #8d9198;
@@ -100,7 +100,7 @@ body {
 }
 
 /* Rain background + lightning overlay */
-#rain {
+#sky {
   position: fixed;
   inset: 0;
   width: 100%;
@@ -150,7 +150,9 @@ h3 {
   position: sticky;
   top: 0;
   z-index: 30;
-  background: var(--bg);
+  background: color-mix(in srgb, var(--bg) 70%, transparent);
+  backdrop-filter: blur(9px);
+  -webkit-backdrop-filter: blur(9px);
   border-bottom: 1px solid var(--border);
 }
 .bar-inner {
@@ -606,7 +608,8 @@ a.card-cta.muted:hover {
 }
 
 @media print {
-  #field,
+  #sky,
+  #flash,
   .seq,
   .bar {
     display: none !important;
