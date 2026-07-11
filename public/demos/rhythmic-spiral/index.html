@@ -1,0 +1,257 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Spirale rythmique — beats liés</title>
+  <script type="module" crossorigin src="./assets/index-BBlS_DTk.js"></script>
+  <link rel="stylesheet" crossorigin href="./assets/index-B0Qve9zr.css">
+</head>
+<body>
+<div class="wrap">
+  <h1>Spirale rythmique — beats liés</h1>
+  <p class="subtitle">Quand un rythme passe d'une configuration à une autre, certains beats peuvent <strong>se déplacer</strong> au lieu d'apparaître/disparaître. Les paires rouge↔bleu sont liées automatiquement par chemin le plus court (couleur jaune).</p>
+
+  <!-- Presets -->
+  <div class="card presets-card">
+    <details id="presets-details">
+      <summary class="presets-summary">
+        <span class="presets-title">Presets</span>
+        <span class="presets-current" id="presets-current">— sélectionne un preset —</span>
+        <span class="presets-chevron">▾</span>
+      </summary>
+      <div class="presets-content">
+        <div class="presets-categories" id="presets-categories"></div>
+        <div class="presets-grid" id="presets-container"></div>
+      </div>
+    </details>
+  </div>
+
+  <div class="views">
+    <!-- 3D view -->
+    <div class="card">
+      <div class="card-label">Vue 3D</div>
+      <div class="scene-3d">
+        <canvas id="scene"></canvas>
+        <div class="panel legend">
+          <div class="row"><span class="swatch" style="background: var(--spiral)"></span>spirale (lecture)</div>
+          <div class="row"><span class="swatch" style="background: var(--beat-keep)"></span>verts — début ∩ fin</div>
+          <div class="row"><span class="swatch" style="background: var(--beat-link)"></span>jaunes — beats liés (glissent)</div>
+          <div class="row"><span class="swatch" style="background: var(--beat-fade)"></span>rouges — disparaissent</div>
+          <div class="row"><span class="swatch" style="background: var(--beat-new)"></span>bleus — apparaissent</div>
+          <div class="row"><span class="swatch dot" style="background: #cc3344"></span>barycentre G(τ)</div>
+        </div>
+        <div class="panel duration" id="duration-panel"></div>
+        <div class="panel hint">glisser : pivoter · Maj+glisser ou clic-droit : déplacer · molette : zoom</div>
+      </div>
+    </div>
+
+    <!-- 2D unrolled -->
+    <div class="card">
+      <div class="card-label">Spirale dépliée &amp; coupe instantanée du rythme</div>
+      <div class="scene-2d unrolled-row">
+        <svg id="unrolled" viewBox="0 0 860 110" preserveAspectRatio="xMidYMid meet"></svg>
+        <svg id="snapshot" viewBox="0 0 240 240" preserveAspectRatio="xMidYMid meet"></svg>
+      </div>
+    </div>
+
+    <!-- Barycenter graph (hidden by default) -->
+    <div class="card" id="bary-graph-card" style="display: none;">
+      <div class="card-label">|G(τ)| — distance du barycentre au centre</div>
+      <div class="scene-2d">
+        <svg id="bary-graph" viewBox="0 0 860 90" preserveAspectRatio="xMidYMid meet"></svg>
+      </div>
+    </div>
+  </div>
+
+  <!-- Rhythm editors -->
+  <div class="card rhythm-editors-card">
+    <div class="card-label">Rythmes — clique pour ajouter ou retirer un beat</div>
+    <div class="rhythm-editors-grid">
+      <div class="rhythm-editor-block">
+        <div class="rhythm-header">
+          <span class="rhythm-title">DÉBUT</span>
+          <span class="rhythm-info" id="info-start">— beats</span>
+        </div>
+        <svg id="edit-start" class="rhythm-svg" viewBox="0 0 240 240"></svg>
+        <div class="rhythm-controls">
+          <span class="ctrl-mini-label">subdiv.
+            <select id="subdiv-start">
+              <option value="4">4</option><option value="6">6</option>
+              <option value="8">8</option><option value="12">12</option>
+              <option value="16" selected>16</option><option value="24">24</option><option value="32">32</option>
+            </select>
+          </span>
+          <button class="icon" id="rot-l-start" title="rotation gauche">←</button>
+          <button class="icon" id="rot-r-start" title="rotation droite">→</button>
+          <button id="copy-from-end">↺ copier fin</button>
+          <button id="clear-start">vider</button>
+        </div>
+      </div>
+      <div class="rhythm-editor-block">
+        <div class="rhythm-header">
+          <span class="rhythm-title">FIN</span>
+          <span class="rhythm-info" id="info-end">— beats</span>
+        </div>
+        <svg id="edit-end" class="rhythm-svg" viewBox="0 0 240 240"></svg>
+        <div class="rhythm-controls">
+          <span class="ctrl-mini-label">subdiv.
+            <select id="subdiv-end">
+              <option value="4">4</option><option value="6">6</option>
+              <option value="8">8</option><option value="12">12</option>
+              <option value="16" selected>16</option><option value="24">24</option><option value="32">32</option>
+            </select>
+          </span>
+          <button class="icon" id="rot-l-end" title="rotation gauche">←</button>
+          <button class="icon" id="rot-r-end" title="rotation droite">→</button>
+          <button id="copy-from-start">copier début ↻</button>
+          <button id="clear-end">vider</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Controls grid -->
+  <div class="controls-grid">
+    <div class="ctrl-group">
+      <div class="ctrl-title">Tempo</div>
+      <div class="row-ctrl">
+        <label class="lbl">BPM début</label>
+        <input type="range" id="bpm-start" min="40" max="200" step="2" value="60">
+        <span class="val" id="bpm-start-val">60</span>
+      </div>
+      <div class="row-ctrl">
+        <label class="lbl">BPM fin</label>
+        <input type="range" id="bpm-end" min="40" max="240" step="2" value="120">
+        <span class="val" id="bpm-end-val">120</span>
+      </div>
+      <div class="row-ctrl">
+        <label class="lbl">tours</label>
+        <input type="range" id="turns" min="1" max="24" value="6" step="1">
+        <span class="val" id="turns-val">6</span>
+      </div>
+      <div class="row-ctrl">
+        <label class="checkbox-row"><input type="checkbox" id="link-beats" checked> apparier les beats</label>
+      </div>
+    </div>
+
+    <div class="ctrl-group">
+      <div class="ctrl-title">Notes</div>
+      <div class="row-ctrl">
+        <label class="lbl">mode</label>
+        <select id="note-mode">
+          <option value="single">single</option>
+          <option value="two" selected>two-tone</option>
+          <option value="three">three-tone</option>
+          <option value="random">scale-random</option>
+          <option value="melody">scale-melody</option>
+        </select>
+      </div>
+      <div class="row-ctrl">
+        <label class="lbl">tonique</label>
+        <select id="tonic">
+          <option value="0">C</option><option value="1">C#</option>
+          <option value="2">D</option><option value="3">D#</option>
+          <option value="4">E</option><option value="5">F</option>
+          <option value="6">F#</option><option value="7" selected>G</option>
+          <option value="8">G#</option><option value="9">A</option>
+          <option value="10">A#</option><option value="11">B</option>
+        </select>
+      </div>
+      <div class="row-ctrl">
+        <label class="lbl">gamme</label>
+        <select id="scale">
+          <option value="penta_major" selected>penta majeure</option>
+          <option value="penta_minor">penta mineure</option>
+          <option value="major">majeure</option>
+          <option value="minor">mineure</option>
+          <option value="dorian">dorien</option>
+        </select>
+      </div>
+      <div class="row-ctrl">
+        <label class="lbl">timbre</label>
+        <select id="timbre">
+          <option value="sine" selected>sinus (pur)</option>
+          <option value="triangle">triangle (doux)</option>
+          <option value="saw">saw (brillant)</option>
+          <option value="square">square (carré)</option>
+          <option value="fm">FM (cloche)</option>
+          <option value="kit">kit drum</option>
+        </select>
+      </div>
+    </div>
+
+    <div class="ctrl-group">
+      <div class="ctrl-title">Géométrie</div>
+      <div class="row-ctrl">
+        <label class="lbl">twist</label>
+        <input type="range" id="twist" min="-2" max="2" step="0.25" value="0">
+        <span class="val" id="twist-val">0</span>
+      </div>
+      <div class="row-ctrl">
+        <label class="lbl">barycentre</label>
+        <select id="bary-mode">
+          <option value="off" selected>off</option>
+          <option value="show">N1 — indicateur</option>
+          <option value="opt-angles">N2 — optimise angles</option>
+          <option value="opt-full">N3 — optimise tout</option>
+        </select>
+      </div>
+      <div class="row-ctrl">
+        <label class="checkbox-row"><input type="checkbox" id="cylinder"> cylindre</label>
+      </div>
+      <div class="row-ctrl">
+        <label class="checkbox-row"><input type="checkbox" id="loop"> tore 3D</label>
+      </div>
+      <div class="row-ctrl">
+        <label class="checkbox-row"><input type="checkbox" id="smooth"> smooth loop</label>
+      </div>
+    </div>
+
+    <div class="ctrl-group">
+      <div class="ctrl-title">Vue 3D</div>
+      <div class="row-ctrl btn-row">
+        <button id="reset">↺ recadrer</button>
+      </div>
+      <div class="row-ctrl">
+        <label class="checkbox-row"><input type="checkbox" id="rotate" checked> rot. auto</label>
+      </div>
+    </div>
+  </div>
+
+  <!-- Transport -->
+  <div class="card transport-card">
+    <div class="transport-row">
+      <button id="play" class="transport-btn-play" aria-label="Lecture">
+        <span id="play-icon">▶</span>
+      </button>
+      <button id="stop" class="transport-btn" aria-label="Stop" title="Stop">■</button>
+      <div class="transport-time">
+        <span id="time-current">0:00.0</span>
+        <span class="transport-time-sep">/</span>
+        <span id="time-total">0:00.0</span>
+      </div>
+      <input type="range" id="scrub" class="transport-scrub" min="0" max="1000" step="1" value="0">
+      <label class="checkbox-row" style="margin-left: 4px;">
+        <input type="checkbox" id="loop-playback" checked> loop
+      </label>
+    </div>
+  </div>
+
+  <!-- Info panels -->
+  <details>
+    <summary>Comment fonctionne l'appariement des beats ?</summary>
+    <p><strong>Algorithme</strong> : on récupère les beats <em>seulement-début</em> (rouges) et <em>seulement-fin</em> (bleus), et on cherche l'appariement qui minimise la somme des distances angulaires. C'est un problème d'affectation classique résolu par énumération exhaustive.</p>
+    <p><strong>Trajectoire</strong> : pour chaque paire, le beat suit le <strong>chemin le plus court</strong> sur le cercle entre l'angle de départ et l'angle d'arrivée.</p>
+    <p><strong>Toggle "apparier les beats"</strong> : quand activé (par défaut), tous les rouges/bleus sont appariés autant que possible. Désactivé, on retombe sur le comportement précédent (rouges fade out, bleus fade in).</p>
+  </details>
+
+  <details>
+    <summary>Modes barycentre — équilibrage du polygone</summary>
+    <p>À chaque instant τ, les beats forment un polygone dont chaque sommet est à la position β_k (angle) et à distance v_k (vélocité) du centre. Le <strong>barycentre</strong> G(τ) = (1/n)·Σ v_k·e^(i·2π·β_k).</p>
+    <p><strong>N1</strong> : indicateur visuel seulement. <strong>N2</strong> : optimise les trajectoires angulaires des beats liés. <strong>N3</strong> : optimise aussi les profils de vélocité des rouges/bleus.</p>
+  </details>
+</div>
+
+</body>
+</html>

@@ -43,8 +43,8 @@ const cv = {
       description:
         "Morph the sound of falling rain into a steady closed hi-hat groove — and every texture in between — with a single knob. A granular synthesis engine where rain and a hi-hat are two ends of one continuum, ported to a real-time browser AudioWorklet.",
       tech: ["Web Audio", "AudioWorklet", "Python DSP"],
-      // Repo is private for now — see note in the README. Set a link once
-      // it's public or a live demo is deployed.
+      demo: "/demos/rain-to-hihat/",
+      // Source repo is private, so no public code link.
       link: null,
     },
     {
@@ -52,6 +52,7 @@ const cv = {
       description:
         "An interactive 3D visualization of one rhythm morphing into another. Beats travel as colored threads along a time-spiral, are auto-matched by shortest path, and drive live audio synthesis — 6 timbres, 5 scales, and 30+ presets.",
       tech: ["Three.js", "JavaScript", "Web Audio"],
+      demo: "/demos/rhythmic-spiral/",
       link: "https://github.com/titille/rhythmic-spiral",
     },
   ],
@@ -125,29 +126,41 @@ const cv = {
       <p class="section-title">Projects</p>
       <div class="grid">
         {
-          cv.projects.map((project) => {
-            const Tag = project.link ? "a" : "div";
-            const linkProps = project.link
-              ? { href: project.link, target: "_blank", rel: "noopener" }
-              : {};
-            return (
-              <Tag
-                class:list={["card", { "card-static": !project.link }]}
-                {...linkProps}
-              >
-                <h3>{project.name}</h3>
-                <p>{project.description}</p>
-                <ul class="tags card-tags">
-                  {project.tech.map((t) => (
-                    <li class="tag">{t}</li>
-                  ))}
-                </ul>
-                <span class="card-cta">
-                  {project.link ? "View →" : "🔒 Private repo"}
-                </span>
-              </Tag>
-            );
-          })
+          cv.projects.map((project) => (
+            <div class="card">
+              <h3>{project.name}</h3>
+              <p>{project.description}</p>
+              <ul class="tags card-tags">
+                {project.tech.map((t) => (
+                  <li class="tag">{t}</li>
+                ))}
+              </ul>
+              <div class="card-actions">
+                {project.demo && (
+                  <a
+                    class="card-cta"
+                    href={project.demo}
+                    target="_blank"
+                    rel="noopener"
+                  >
+                    ▶ Live demo
+                  </a>
+                )}
+                {project.link ? (
+                  <a
+                    class="card-cta card-cta-muted"
+                    href={project.link}
+                    target="_blank"
+                    rel="noopener"
+                  >
+                    Code →
+                  </a>
+                ) : (
+                  <span class="card-cta card-cta-muted">🔒 Code private</span>
+                )}
+              </div>
+            </div>
+          ))
         }
       </div>
     </section>

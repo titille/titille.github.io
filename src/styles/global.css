@@ -182,20 +182,26 @@ section {
   padding: 0.2rem 0.55rem;
 }
 
+.card-actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.4rem 1.1rem;
+}
+
 .card-cta {
   color: var(--accent);
-  font-weight: 500;
+  font-weight: 600;
   font-size: 0.9rem;
 }
 
-/* Card without a public link (e.g. private repo) */
-.card-static {
-  cursor: default;
+.card-cta-muted {
+  color: var(--text-muted);
+  font-weight: 500;
 }
 
-.card-static:hover {
-  transform: none;
-  border-color: var(--border);
+a.card-cta-muted:hover {
+  color: var(--accent);
 }
 
 @media print {
